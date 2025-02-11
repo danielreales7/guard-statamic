@@ -1,0 +1,52 @@
+<div class="mt-4">
+    <form
+        x-data="{
+            submitted: false,
+            form: $form('post', '{{ route:user.authenticate }}', {
+                email: $wire.entangle('email'),
+                password: $wire.entangle('password')
+            }),
+            submit() {
+                this.submitted = true
+                this.form.submit()
+                    .then(response => {
+                        // Redirect to booking page
+                        console.log(response)
+                        window.location.href = response.data.redirect;
+                    })
+                    .catch(error => {
+                        // Redirect to login page
+                        if (error.response.status === 401) {
+                            window.location.href = error.response.data.redirect;
+                            return;
+                        }
+
+                        this.submitted = false;
+                    });
+            },
+        }"
+        id="form-login"
+        @reset-validation.window="form.setErrors({})"
+        @submit.prevent="submit"
+    >
+        <input wire:ignore type="hidden" name="_token" value="{{ csrf_token }}" />
+
+        <div class="flex flex-col gap-y-4">
+            <input type="email" name="email" value="{{ old:email }}" placeholder="{{ trans:auth.input_email }} *" x-model="form.email" @change="form.validate('email')"
+                   :class="{ 'border-b-red-500 placeholder:text-red-500': form.invalid('email') }"
+                   class="border-t-0 border-l-0 border-r-0" />
+            <template x-if="form.invalid('email')">
+                <span class="text-red-500 text-xs" x-text="form.errors.email"></span>
+            </template>
+
+            <input type="password" name="password" value="{{ old:password }}" placeholder="{{ trans:auth.input_password }} *" x-model="form.password" @change="form.validate('password')"
+                   :class="{ 'border-b-red-500 placeholder:text-red-500': form.invalid('email') }"
+                   class="border-t-0 border-l-0 border-r-0" />
+            <template x-if="form.invalid('password')">
+                <span class="text-red-500 text-xs" x-text="form.errors.password"></span>
+            </template>
+
+            <button class="w-full bg-black text-white p-2.5 rounded-full mt-5">{{ trans:auth.login }}</button>
+        </div>
+    </form>
+</div>
